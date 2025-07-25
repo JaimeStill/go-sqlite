@@ -11,7 +11,7 @@ This repository contains a series of isolated learning phases, each focusing on 
 ```
 ├── src/                          # All learning phases and utilities
 │   ├── 00-setup-validation/      # Environment validation tool
-│   ├── 01-foundation/            # Basic FTS5 setup and operations
+│   ├── 01-foundation/            # ✅ Basic FTS5 setup and operations (COMPLETED)
 │   ├── 02-bm25-fundamentals/     # BM25 scoring and interpretation
 │   ├── 03-query-operations/      # Advanced FTS5 query patterns
 │   ├── 04-ranking-relevance/     # Custom ranking strategies
@@ -46,8 +46,12 @@ This ensures SQLite FTS5 is properly installed and accessible from Go.
 Each phase is a standalone project with its own README:
 
 ```bash
-cd src/01-foundation
-# Follow the README.md instructions for that phase
+# Phase 1: Foundation (COMPLETED)
+cd src/01-foundation/fts5-foundation
+go run -tags fts5 . --help
+go run -tags fts5 . document --help
+
+# See comprehensive usage examples in the phase README
 ```
 
 ## Key Learning Concepts
@@ -57,6 +61,7 @@ cd src/01-foundation
 - **Query Patterns**: Boolean operators, phrase matching, proximity search
 - **Performance Optimization**: Index tuning and query optimization
 - **Go Integration**: Building FTS5-enabled applications with proper build tags
+- **CLI Architecture**: Hierarchical command patterns and error handling strategies
 
 ## Important Notes
 
@@ -76,10 +81,10 @@ go run *.go [command]
 ### Phase Isolation
 
 Each learning phase is completely isolated with its own:
+
 - `go.mod` file for dependencies
 - `main.go` CLI entry point using Cobra/Viper
 - `README.md` with phase-specific instructions
-- `examples/` directory with sample data
 
 ## Development Philosophy
 

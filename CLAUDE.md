@@ -50,34 +50,116 @@
 - **CLI Design**: Use Cobra/Viper patterns for all phase projects
 - **Naming**: Use descriptive variable names that indicate FTS5 context (e.g., `ftsDB`, `bm25Score`)
 
+## Successful Architectural Patterns
+
+### CommandGroup Hierarchical Structure
+
+Use the CommandGroup pattern for scalable CLI organization:
+
+```go
+type CommandGroup struct {
+    Command     *cobra.Command      // The Cobra command this group represents
+    ChildGroups []*CommandGroup     // Child command groups (base commands)
+    SubCommands []*cobra.Command    // Direct sub-commands
+    FlagSetup   func()             // Flag registration function
+}
+```
+
+**Benefits**:
+
+- Prevents command naming conflicts
+- Enables recursive command organization
+- Simplifies command registration with `Init()` method
+
+### Type-Safe Error Handling System
+
+Implement centralized error handling with sentinel errors:
+
+```go
+// Define error types
+var (
+    ErrValidation = errors.New("validation failed")
+    ErrDatabase   = errors.New("database operation failed")
+    ErrFTS5       = errors.New("FTS5 operation failed")
+    ErrNotFound   = errors.New("not found")
+)
+
+// Helper functions for creating typed errors
+func Validationf(format string, args ...interface{}) error {
+    return fmt.Errorf("%w: "+format, append([]interface{}{ErrValidation}, args...)...)
+}
+
+// Centralized display with automatic verbose handling
+func DisplayError(err error) {
+    if viper.GetBool("verbose") {
+        displayVerbose(err)
+    } else {
+        displaySimple(err)
+    }
+}
+```
+
+**Benefits**:
+
+- Consistent error presentation across commands
+- Type-safe error checking with `errors.Is()`
+- Automatic verbose/simple mode switching
+- User-friendly error messages with helpful hints
+
+### Layered Architecture Pattern
+
+Maintain clear separation of concerns:
+
+- **Commands Layer**: CLI interface, flag handling, error display
+- **Handlers Layer**: Business logic, database operations, validation
+- **Models Layer**: Data structures, type definitions
+- **Errors Layer**: Error types, display functions, type checking
+
 ## Phase Development Workflow
 
 ### Planning Phase
+
 - Load phase requirements and context artifacts into session
 - Engage relevant subagents from `.claude/agents/` for specialized tasks
 - Establish execution plan as small, reviewable tasks
 - Write execution plan to `_context/plans/XX-phase-name.md`
 
 ### Pair Programming Execution
+
 - Work through task list together in normal mode (not auto-accept)
 - Single-step processes for easy review and approval
 - Allow for clarifications and pivots throughout execution
 - Use subagents for schema design, BM25 analysis, Go implementation, etc.
 
 ### Phase Completion & Validation
+
 - Use `testing-validation-agent` to validate project functionality
 - Generate comprehensive README.md capturing learning objectives and reflections
 - Ensure phase works as standalone CLI program
 - Document key learnings for context handoff to next phase
 
 ### Phase Template Structure
+
 Each phase directory contains:
+
 ```
 src/XX-phase-name/
 ├── main.go              # CLI entry point using Cobra/Viper
 ├── go.mod               # Isolated dependencies
-├── README.md            # Learning objectives, concepts, usage, reflections
-└── examples/            # Sample data files for experiments
+├── config.go            # Configuration management (viper integration)
+├── globals.go           # Global variables and constants
+├── commands/            # Hierarchical CLI command definitions
+│   ├── command_group.go # CommandGroup pattern for hierarchical structure
+│   ├── root.go         # Root command and global flags
+│   └── [context].go    # Context-specific commands (document.go, etc.)
+├── handlers/           # Business logic layer
+│   ├── database.go     # Database operations and FTS5 setup
+│   └── [context].go    # Context-specific handlers (document.go, etc.)
+├── models/             # Data structures and types
+│   └── [context].go    # Context-specific models (document.go, etc.)
+├── errors/             # Type-safe error handling system
+│   └── errors.go       # Sentinel errors and display functions
+└── README.md           # Learning objectives, concepts, usage, reflections
 ```
 
 ## Experimental Project Guidelines
@@ -115,9 +197,32 @@ src/XX-phase-name/
 - **Check Index**: `.schema` to see generated FTS5 backing tables
 - **Performance**: Use `PRAGMA table_info(fts_table)` to inspect virtual table structure
 
+## Session Management Best Practices
+
+### Context Optimization for Complex Phases
+
+- **Chunked Development**: Break complex phases into 2-3 focused sessions
+- **Progressive Complexity**: Start with basic structure, add sophistication iteratively  
+- **Checkpoint Documentation**: Document architecture decisions at major transition points
+- **Subagent Utilization**: Use specialized agents (go-integration-agent) for design reviews
+
+### Effective Pair Programming Patterns
+
+- **Architecture First**: Establish patterns early, then apply consistently
+- **Incremental Validation**: Test each component as built rather than at end
+- **User Feedback Integration**: Regular check-ins for course corrections
+- **Pattern Documentation**: Capture successful approaches for reuse
+
+### Context Handoff Between Sessions
+
+- **Status Documentation**: Clear TODO lists with detailed context
+- **Pattern Summary**: Document architectural decisions and successful patterns
+- **File Organization**: Keep related changes in focused commits
+- **Validation State**: Ensure working state before session transitions
+
 ## Project Evolution Strategy
 
 - **Phase Gates**: Complete each syllabus phase before advancing
 - **Knowledge Validation**: Build working examples that demonstrate understanding
 - **Complexity Scaling**: Add features only after mastering prerequisites
-- **Context Management**: Clear session context between major phase transitions
+- **Architecture Reuse**: Apply successful patterns from previous phases

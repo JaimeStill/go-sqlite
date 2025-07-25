@@ -1,0 +1,97 @@
+# SQLite FTS5 & BM25 Learning Project
+
+A hands-on learning project to build understanding of SQLite FTS5 and BM25 scoring through incremental Go experiments.
+
+## Project Overview
+
+This repository contains a series of isolated learning phases, each focusing on specific SQLite FTS5 and BM25 concepts. The goal is to build foundational understanding through practical experimentation rather than theoretical study.
+
+## Repository Structure
+
+```
+├── src/                          # All learning phases and utilities
+│   ├── 00-setup-validation/      # Environment validation tool
+│   ├── 01-foundation/            # Basic FTS5 setup and operations
+│   ├── 02-bm25-fundamentals/     # BM25 scoring and interpretation
+│   ├── 03-query-operations/      # Advanced FTS5 query patterns
+│   ├── 04-ranking-relevance/     # Custom ranking strategies
+│   ├── 05-advanced-features/     # FTS5 auxiliary functions
+│   ├── 06-integration-patterns/  # Production-ready patterns
+│   └── shared/                   # Common utilities for all phases
+├── data/                         # Shared data directory for experiments
+└── _context/                     # Reference materials and documentation
+```
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Go 1.24+
+- SQLite with FTS5 support installed locally
+- See `_context/sqlite-fts5-reference.md` for installation instructions
+
+### 2. Validate Your Setup
+
+Before starting any learning phases, validate your environment:
+
+```bash
+cd src/00-setup-validation
+go run -tags fts5 *.go validate
+```
+
+This ensures SQLite FTS5 is properly installed and accessible from Go.
+
+### 3. Explore Learning Phases
+
+Each phase is a standalone project with its own README:
+
+```bash
+cd src/01-foundation
+# Follow the README.md instructions for that phase
+```
+
+## Key Learning Concepts
+
+- **FTS5 Virtual Tables**: Full-text search indexing and querying
+- **BM25 Scoring**: Relevance ranking algorithm and SQLite's implementation
+- **Query Patterns**: Boolean operators, phrase matching, proximity search
+- **Performance Optimization**: Index tuning and query optimization
+- **Go Integration**: Building FTS5-enabled applications with proper build tags
+
+## Important Notes
+
+### Build Tags Required
+
+All Go programs in this repository require the FTS5 build tag:
+
+```bash
+# Correct
+go run -tags fts5 *.go [command]
+go build -tags fts5 -o binary *.go
+
+# Wrong - will fail
+go run *.go [command]
+```
+
+### Phase Isolation
+
+Each learning phase is completely isolated with its own:
+- `go.mod` file for dependencies
+- `main.go` CLI entry point using Cobra/Viper
+- `README.md` with phase-specific instructions
+- `examples/` directory with sample data
+
+## Development Philosophy
+
+- **Incremental Learning**: Start simple, add complexity gradually
+- **Hands-on Experimentation**: Working code over theoretical concepts
+- **Phase Independence**: Each phase stands alone and can be run separately
+- **Native Development**: Local SQLite installation for consistency
+
+## Getting Help
+
+- Check individual phase README files for specific instructions
+- Review `_context/sqlite-fts5-reference.md` for SQLite FTS5 setup
+- See `CLAUDE.md` for detailed project guidelines and development workflow
+
+Start with phase 00 (setup validation) and progress through the numbered phases in order to build your SQLite FTS5 expertise systematically.

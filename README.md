@@ -10,15 +10,13 @@ This repository contains a series of isolated learning phases, each focusing on 
 
 ```
 ├── src/                          # All learning phases and utilities
-│   ├── 00-setup-validation/      # Environment validation tool
+│   ├── 00-setup-validation/      # ✅ Environment validation tool (COMPLETED)
 │   ├── 01-foundation/            # ✅ Basic FTS5 setup and operations (COMPLETED)
-│   ├── 02-bm25-fundamentals/     # BM25 scoring and interpretation
+│   ├── 02-bm25-fundamentals/     # ✅ BM25 scoring and interpretation (COMPLETED)
 │   ├── 03-query-operations/      # Advanced FTS5 query patterns
 │   ├── 04-ranking-relevance/     # Custom ranking strategies
 │   ├── 05-advanced-features/     # FTS5 auxiliary functions
-│   ├── 06-integration-patterns/  # Production-ready patterns
-│   └── shared/                   # Common utilities for all phases
-├── data/                         # Shared data directory for experiments
+│   └── 06-integration-patterns/  # Production-ready patterns
 └── _context/                     # Reference materials and documentation
 ```
 
@@ -36,7 +34,7 @@ Before starting any learning phases, validate your environment:
 
 ```bash
 cd src/00-setup-validation
-go run -tags fts5 *.go validate
+go run -tags fts5 ./setup-validation validation validate
 ```
 
 This ensures SQLite FTS5 is properly installed and accessible from Go.
@@ -46,12 +44,21 @@ This ensures SQLite FTS5 is properly installed and accessible from Go.
 Each phase is a standalone project with its own README:
 
 ```bash
-# Phase 1: Foundation (COMPLETED)
-cd src/01-foundation/fts5-foundation
-go run -tags fts5 . --help
-go run -tags fts5 . document --help
+# Phase 0: Setup Validation (COMPLETED)
+cd src/00-setup-validation
+go run -tags fts5 ./setup-validation --help
 
-# See comprehensive usage examples in the phase README
+# Phase 1: Foundation (COMPLETED)
+cd src/01-foundation
+go run -tags fts5 ./fts5-foundation --help
+go run -tags fts5 ./fts5-foundation document --help
+
+# Phase 2: BM25 Fundamentals (COMPLETED)
+cd src/02-bm25-fundamentals
+go run -tags fts5 ./bm25-fundamentals --help
+go run -tags fts5 ./bm25-fundamentals corpus --help
+
+# See comprehensive usage examples in each phase's README
 ```
 
 ## Key Learning Concepts
@@ -70,21 +77,24 @@ go run -tags fts5 . document --help
 All Go programs in this repository require the FTS5 build tag:
 
 ```bash
-# Correct
-go run -tags fts5 *.go [command]
-go build -tags fts5 -o binary *.go
+# Correct - using subdirectory structure
+go run -tags fts5 ./setup-validation [command]
+go run -tags fts5 ./fts5-foundation [command]
+go run -tags fts5 ./bm25-fundamentals [command]
 
-# Wrong - will fail
-go run *.go [command]
+# Wrong - will fail without FTS5 tags
+go run ./setup-validation [command]
 ```
 
 ### Phase Isolation
 
 Each learning phase is completely isolated with its own:
 
-- `go.mod` file for dependencies
-- `main.go` CLI entry point using Cobra/Viper
-- `README.md` with phase-specific instructions
+- `go.mod` file for dependencies at the phase root
+- CLI application in a subdirectory (e.g., `setup-validation/`, `fts5-foundation/`, `bm25-fundamentals/`)
+- `main.go` CLI entry point using Cobra/Viper with CommandGroup pattern
+- `README.md` with phase-specific instructions and learning objectives
+- Self-contained utilities (no shared dependencies between phases)
 
 ## Development Philosophy
 

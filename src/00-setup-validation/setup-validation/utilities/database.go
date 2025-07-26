@@ -1,5 +1,5 @@
-// Package shared provides common utilities for SQLite FTS5 experiments
-package shared
+// Package utilities provides FTS5 testing utilities for setup validation
+package utilities
 
 import (
 	"database/sql"

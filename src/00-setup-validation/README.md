@@ -1,6 +1,6 @@
-# SQLite FTS5 Setup Validation
+# Phase 0: SQLite FTS5 Setup Validation
 
-A comprehensive validation tool to ensure your SQLite FTS5 environment is properly configured for the go-sqlite learning project.
+A comprehensive CLI validation tool to ensure your SQLite FTS5 environment is properly configured for the go-sqlite learning project.
 
 ## Learning Objectives
 
@@ -9,8 +9,9 @@ This validation project teaches and demonstrates:
 - **Native SQLite FTS5 Setup**: Verifying local SQLite installation includes FTS5 support
 - **Go Build Tags**: Understanding when and how to use `-tags fts5` with the mattn/go-sqlite3 driver  
 - **BM25 Scoring**: Confirming BM25 relevance ranking works with SQLite's inverted scoring system
-- **Error Handling**: Robust validation with clear error messages and recovery guidance
-- **Build System Design**: Creating foolproof build configurations that prevent common mistakes
+- **CLI Architecture**: Professional command structure using hierarchical command organization
+- **Type-Safe Error Handling**: Robust validation with clear error messages and recovery guidance
+- **Modular Design**: Clean separation of concerns with commands, handlers, models, and utilities
 
 ## Key Concepts
 
@@ -42,15 +43,15 @@ SQLite FTS5 uses inverted BM25 scores where **lower (more negative) scores indic
 
 ### Recommended Usage
 
-Run validation directly with the required FTS5 build tag:
+Run validation using the CLI structure with the required FTS5 build tag:
 
 ```bash
 # Quick validation (recommended)
-go run -tags fts5 *.go validate
+go run -tags fts5 ./setup-validation validation validate
 
 # Build standalone binary
-go build -tags fts5 -o setup-validator *.go
-./setup-validator validate
+go build -tags fts5 -o setup-validator ./setup-validation
+./setup-validator validation validate
 ```
 
 ### Important Build Requirements
@@ -59,22 +60,28 @@ The project requires the FTS5 build tag for proper SQLite integration:
 
 ```bash
 # Correct - includes FTS5 support
-go run -tags fts5 *.go validate
-go build -tags fts5 -o validator *.go
+go run -tags fts5 ./setup-validation validation validate
+go build -tags fts5 -o validator ./setup-validation
 
 # Wrong - will fail with helpful error message
-go run *.go validate
-go build *.go
+go run ./setup-validation validation validate
+go build ./setup-validation
 ```
 
 ### Available Commands
 
 ```bash
-go run -tags fts5 *.go validate    # Run validation
-go run -tags fts5 *.go connect     # Test database connection
-go run -tags fts5 *.go fts5        # Test FTS5 functionality  
-go run -tags fts5 *.go testdata    # Test sample data generation
-go run -tags fts5 *.go bm25        # Test BM25 scoring
+# Comprehensive validation
+go run -tags fts5 ./setup-validation validation validate
+
+# Individual validation checks
+go run -tags fts5 ./setup-validation validation connect     # Test database connection
+go run -tags fts5 ./setup-validation validation fts5        # Test FTS5 functionality  
+go run -tags fts5 ./setup-validation validation testdata    # Test sample data generation
+go run -tags fts5 ./setup-validation validation bm25        # Test BM25 scoring
+
+# Verbose output for detailed information
+go run -tags fts5 ./setup-validation validation validate --verbose
 ```
 
 ## Validation Checks

@@ -49,7 +49,7 @@ go mod download
 go build -tags fts5 -o fts5-foundation
 
 # Or run directly
-go run -tags fts5 .
+go run -tags fts5 ./fts5-foundation
 ```
 
 ⚠️ **Important**: Always include the `-tags fts5` flag to enable FTS5 support in the SQLite driver.
@@ -60,16 +60,16 @@ go run -tags fts5 .
 
 ```bash
 # 1. Create the FTS5 table
-go run -tags fts5 . document create-table --database learning.db
+go run -tags fts5 ./fts5-foundation document create-table --database learning.db
 
 # 2. Insert sample documents
-go run -tags fts5 . document batch-insert --database learning.db
+go run -tags fts5 ./fts5-foundation document batch-insert --database learning.db
 
 # 3. Search documents
-go run -tags fts5 . document search "golang programming" --database learning.db
+go run -tags fts5 ./fts5-foundation document search "go programming" --database learning.db
 
 # 4. List all documents
-go run -tags fts5 . document list --database learning.db
+go run -tags fts5 ./fts5-foundation document list --database learning.db
 ```
 
 ### Document Management
@@ -77,13 +77,13 @@ go run -tags fts5 . document list --database learning.db
 #### Create Table
 
 ```bash
-go run -tags fts5 . document create-table --database mydb.db
+go run -tags fts5 ./fts5-foundation document create-table --database mydb.db
 ```
 
 #### Insert Single Document
 
 ```bash
-go run -tags fts5 . document insert \
+go run -tags fts5 ./fts5-foundation document insert \
   --title "My Document" \
   --content "Document content here..." \
   --category "example" \
@@ -93,13 +93,13 @@ go run -tags fts5 . document insert \
 #### Insert Sample Documents
 
 ```bash
-go run -tags fts5 . document batch-insert --database mydb.db
+go run -tags fts5 ./fts5-foundation document batch-insert --database mydb.db
 ```
 
 #### Update Document
 
 ```bash
-go run -tags fts5 . document update 1 \
+go run -tags fts5 ./fts5-foundation document update 1 \
   --title "Updated Title" \
   --database mydb.db
 ```
@@ -107,7 +107,7 @@ go run -tags fts5 . document update 1 \
 #### Delete Document
 
 ```bash
-go run -tags fts5 . document delete 1 --database mydb.db
+go run -tags fts5 ./fts5-foundation document delete 1 --database mydb.db
 ```
 
 ### Search Operations
@@ -115,31 +115,31 @@ go run -tags fts5 . document delete 1 --database mydb.db
 #### Basic Search
 
 ```bash
-go run -tags fts5 . document search "database indexing" --database mydb.db
+go run -tags fts5 ./fts5-foundation document search "database indexing" --database mydb.db
 ```
 
 #### Search with BM25 Scores
 
 ```bash
-go run -tags fts5 . document search "golang" --scores --database mydb.db
+go run -tags fts5 ./fts5-foundation document search "golang" --scores --database mydb.db
 ```
 
 #### Category-Filtered Search
 
 ```bash
-go run -tags fts5 . document search-category "programming" "database" --database mydb.db
+go run -tags fts5 ./fts5-foundation document search-category "programming" "database" --database mydb.db
 ```
 
 #### Field-Specific Search
 
 ```bash
-go run -tags fts5 . document search-field "Introduction" "title" --database mydb.db
+go run -tags fts5 ./fts5-foundation document search-field "Introduction" "title" --database mydb.db
 ```
 
 #### Limit Results
 
 ```bash
-go run -tags fts5 . document search "database" --limit 3 --database mydb.db
+go run -tags fts5 ./fts5-foundation document search "database" --limit 3 --database mydb.db
 ```
 
 ## Architecture
@@ -263,7 +263,7 @@ Not Found: not found: document with rowid 999
 Use `--verbose` flag for detailed error chains:
 
 ```bash
-go run -tags fts5 . document search "" --verbose
+go run -tags fts5 ./fts5-foundation document search "" --verbose
 # Shows full error context and stack traces
 ```
 
@@ -272,13 +272,7 @@ go run -tags fts5 . document search "" --verbose
 ### Running Tests
 
 ```bash
-go test -tags fts5 ./...
-```
-
-### Building for Production
-
-```bash
-go build -tags fts5 -ldflags="-s -w" -o fts5-foundation
+go test -tags fts5 ./fts5-foundation/...
 ```
 
 ### Adding New Commands

@@ -1,14 +1,38 @@
 package handlers
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/jaime/go-sqlite/01-foundation/fts5-foundation/config"
+	"github.com/jaime/go-sqlite/01-foundation/fts5-foundation/database"
 	"github.com/jaime/go-sqlite/01-foundation/fts5-foundation/errors"
 	"github.com/jaime/go-sqlite/01-foundation/fts5-foundation/models"
-	"github.com/spf13/viper"
 )
+
+// CreateDocumentsTable creates the FTS5 virtual table for document storage
+func CreateDocumentsTable() error {
+	ctx := context.Background()
+	
+	// Initialize schema using global database instance
+	if err := database.Instance.InitSchema(ctx); err != nil {
+		return err
+	}
+
+	if config.App.IsVerbose() {
+		fmt.Println("✓ FTS5 documents table created successfully")
+		fmt.Println("Schema: title, content, category with unicode61 tokenizer")
+	}
+
+	return nil
+}
+
+// VerifyFTS5Support checks if SQLite was compiled with FTS5 support
+func VerifyFTS5Support() error {
+	ctx := context.Background()
+	return database.Instance.VerifyFTS5Support(ctx)
+}
 
 // InsertDocument inserts a single document into the FTS5 table
 func InsertDocument(title, content, category string) error {
@@ -23,17 +47,12 @@ func InsertDocument(title, content, category string) error {
 		return errors.Validationf("category cannot be empty")
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
+	db := database.Instance.DB()
 
 	// Insert the document
 	insertSQL := `INSERT INTO documents (title, content, category) VALUES (?, ?, ?)`
-	result, err := db.Exec(insertSQL, title, content, category)
+	result, err := db.ExecContext(ctx, insertSQL, title, content, category)
 	if err != nil {
 		return errors.Databasef("failed to insert document: %w", err)
 	}
@@ -44,7 +63,7 @@ func InsertDocument(title, content, category string) error {
 		return errors.Databasef("failed to get last insert ID: %w", err)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Successfully inserted document with ID: %d\n", rowID)
 		fmt.Printf("Title: %s\n", title)
 		fmt.Printf("Category: %s\n", category)
@@ -73,18 +92,12 @@ func BatchInsertDocuments(documents []models.Document) error {
 		}
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
 
 	// Begin transaction for batch operations
-	tx, err := db.Begin()
+	tx, err := database.Instance.Begin(ctx)
 	if err != nil {
-		return errors.Transactionf("failed to begin transaction: %w", err)
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -93,7 +106,7 @@ func BatchInsertDocuments(documents []models.Document) error {
 	}()
 
 	// Prepare statement within transaction
-	stmt, err := tx.Prepare("INSERT INTO documents (title, content, category) VALUES (?, ?, ?)")
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO documents (title, content, category) VALUES (?, ?, ?)")
 	if err != nil {
 		return errors.Databasef("failed to prepare batch insert statement: %w", err)
 	}
@@ -102,7 +115,7 @@ func BatchInsertDocuments(documents []models.Document) error {
 	// Insert all documents
 	insertedCount := 0
 	for i, doc := range documents {
-		_, err := stmt.Exec(doc.Title, doc.Content, doc.Category)
+		_, err := stmt.ExecContext(ctx, doc.Title, doc.Content, doc.Category)
 		if err != nil {
 			return errors.Databasef("failed to insert document %d: %w", i+1, err)
 		}
@@ -114,7 +127,7 @@ func BatchInsertDocuments(documents []models.Document) error {
 		return errors.Transactionf("failed to commit batch insert transaction: %w", err)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Successfully inserted %d documents in batch operation\n", insertedCount)
 
 		// Count documents by category for summary
@@ -143,13 +156,8 @@ func SearchDocuments(query string, limit int) ([]models.SearchResult, error) {
 		limit = 10 // Default limit
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return nil, errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
+	db := database.Instance.DB()
 
 	// Prepare the FTS5 search query with BM25 scoring
 	searchSQL := `
@@ -164,7 +172,7 @@ func SearchDocuments(query string, limit int) ([]models.SearchResult, error) {
 		ORDER BY score 
 		LIMIT ?`
 
-	rows, err := db.Query(searchSQL, query, limit)
+	rows, err := db.QueryContext(ctx, searchSQL, query, limit)
 	if err != nil {
 		return nil, errors.Databasef("failed to execute search query: %w", err)
 	}
@@ -190,7 +198,7 @@ func SearchDocuments(query string, limit int) ([]models.SearchResult, error) {
 		return nil, errors.Databasef("error iterating search results: %w", err)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Search query: %s\n", query)
 		fmt.Printf("Found %d results (limit: %d)\n", len(results), limit)
 		if len(results) > 0 {
@@ -259,13 +267,8 @@ func ListDocuments(limit int) ([]models.DocumentInfo, error) {
 		limit = 50 // Default limit for listings
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return nil, errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
+	db := database.Instance.DB()
 
 	// Query all documents
 	listSQL := `
@@ -278,7 +281,7 @@ func ListDocuments(limit int) ([]models.DocumentInfo, error) {
 		ORDER BY rowid 
 		LIMIT ?`
 
-	rows, err := db.Query(listSQL, limit)
+	rows, err := db.QueryContext(ctx, listSQL, limit)
 	if err != nil {
 		return nil, errors.Databasef("failed to list documents: %w", err)
 	}
@@ -313,7 +316,7 @@ func ListDocuments(limit int) ([]models.DocumentInfo, error) {
 		return nil, errors.Databasef("error iterating documents: %w", err)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Found %d documents (limit: %d)\n", len(documents), limit)
 	}
 
@@ -332,20 +335,15 @@ func UpdateDocument(rowID int64, title, content, category string) error {
 		return errors.Validationf("at least one field (title, content, category) must be provided for update")
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
+	db := database.Instance.DB()
 
 	// First, check if the document exists and get current values
 	var currentTitle, currentContent, currentCategory string
 	checkSQL := `SELECT title, content, category FROM documents WHERE rowid = ?`
-	err = db.QueryRow(checkSQL, rowID).Scan(&currentTitle, &currentContent, &currentCategory)
+	err := db.QueryRowContext(ctx, checkSQL, rowID).Scan(&currentTitle, &currentContent, &currentCategory)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.IsNotFound(err) {
 			return errors.NotFoundf("document with rowid %d", rowID)
 		}
 		return errors.Databasef("failed to check existing document: %w", err)
@@ -368,7 +366,7 @@ func UpdateDocument(rowID int64, title, content, category string) error {
 
 	// Update the document (FTS5 will automatically update the index)
 	updateSQL := `UPDATE documents SET title = ?, content = ?, category = ? WHERE rowid = ?`
-	result, err := db.Exec(updateSQL, newTitle, newContent, newCategory, rowID)
+	result, err := db.ExecContext(ctx, updateSQL, newTitle, newContent, newCategory, rowID)
 	if err != nil {
 		return errors.Databasef("failed to update document: %w", err)
 	}
@@ -383,7 +381,7 @@ func UpdateDocument(rowID int64, title, content, category string) error {
 		return errors.NotFoundf("no document was updated (rowid %d may not exist)", rowID)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Successfully updated document %d\n", rowID)
 		fmt.Printf("New values:\n")
 		fmt.Printf("  Title: %s\n", newTitle)
@@ -402,20 +400,15 @@ func DeleteDocument(rowID int64) error {
 		return errors.Validationf("invalid rowid: %d", rowID)
 	}
 
-	// Open database connection
-	dbPath := viper.GetString("database")
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return errors.Databasef("failed to open database: %w", err)
-	}
-	defer db.Close()
+	ctx := context.Background()
+	db := database.Instance.DB()
 
 	// First, get document info for confirmation (optional but helpful)
 	var title, category string
 	checkSQL := `SELECT title, category FROM documents WHERE rowid = ?`
-	err = db.QueryRow(checkSQL, rowID).Scan(&title, &category)
+	err := db.QueryRowContext(ctx, checkSQL, rowID).Scan(&title, &category)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.IsNotFound(err) {
 			return errors.NotFoundf("document with rowid %d", rowID)
 		}
 		return errors.Databasef("failed to check existing document: %w", err)
@@ -423,7 +416,7 @@ func DeleteDocument(rowID int64) error {
 
 	// Delete the document (FTS5 will automatically update the index)
 	deleteSQL := `DELETE FROM documents WHERE rowid = ?`
-	result, err := db.Exec(deleteSQL, rowID)
+	result, err := db.ExecContext(ctx, deleteSQL, rowID)
 	if err != nil {
 		return errors.Databasef("failed to delete document: %w", err)
 	}
@@ -438,7 +431,7 @@ func DeleteDocument(rowID int64) error {
 		return errors.NotFoundf("no document was deleted (rowid %d may not exist)", rowID)
 	}
 
-	if viper.GetBool("verbose") {
+	if config.App.IsVerbose() {
 		fmt.Printf("Successfully deleted document %d\n", rowID)
 		fmt.Printf("Deleted document: %s (category: %s)\n", title, category)
 		fmt.Printf("FTS5 index automatically updated\n")

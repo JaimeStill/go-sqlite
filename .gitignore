@@ -4,8 +4,9 @@
 *.dll
 *.so
 *.dylib
+*.db
+*.db-*
 /bin/
-/pkg/
 
 # Test binary, built with `go test -c`
 *.test
@@ -19,10 +20,6 @@ go.work.sum
 # Dependency directories
 vendor/
 
-# IDE
-.vscode/
-.idea/
-
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -31,9 +28,6 @@ vendor/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Data directory contents (preserve structure)
-data/*
 
 # Temporary files
 *.tmp

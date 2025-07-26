@@ -127,6 +127,7 @@ Write execution plan to `_context/plans/XX-phase-name.md` including:
   - Usage instructions for CLI program
   - Reflections on challenges and insights gained
   - Context for next phase development
+- Close out tasks in the generated `_context/plans/XX-phase-name.md` execution plan.
 
 ### Knowledge Transfer Preparation
 

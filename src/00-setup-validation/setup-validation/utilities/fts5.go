@@ -1,4 +1,4 @@
-package shared
+package utilities
 
 import (
 	"database/sql"

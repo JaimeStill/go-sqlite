@@ -33,7 +33,7 @@ By using this tool, you will understand:
 ### 1. Clone and Navigate
 
 ```bash
-cd /path/to/go-sqlite/src/01-foundation/fts5-foundation
+cd /path/to/go-sqlite/src/01-foundation
 ```
 
 ### 2. Install Dependencies
@@ -42,14 +42,14 @@ cd /path/to/go-sqlite/src/01-foundation/fts5-foundation
 go mod download
 ```
 
-### 3. Build with FTS5 Support
+### 3. Run with FTS5 Support
 
 ```bash
-# Build executable
-go build -tags fts5 -o fts5-foundation
-
-# Or run directly
+# Run directly (recommended)
 go run -tags fts5 ./fts5-foundation
+
+# Or test basic functionality
+go run -tags fts5 ./fts5-foundation --help
 ```
 
 ⚠️ **Important**: Always include the `-tags fts5` flag to enable FTS5 support in the SQLite driver.
@@ -149,19 +149,20 @@ go run -tags fts5 ./fts5-foundation document search "database" --limit 3 --datab
 ```
 fts5-foundation/
 ├── main.go                 # Application entry point
-├── config.go              # Configuration management using Viper
-├── globals.go             # Global variables and shared state
 ├── commands/              # CLI command definitions
 │   ├── command_group.go   # Hierarchical command structure pattern
 │   ├── root.go           # Root command and global flags
 │   └── document.go       # Document-related sub-commands
-├── handlers/              # Business logic layer
-│   ├── database.go       # Database initialization and FTS5 operations
-│   └── document.go       # Document CRUD operations with BM25 scoring
-├── models/               # Data structures
-│   └── document.go      # Document, SearchResult, and DocumentInfo models
-└── errors/              # Centralized error handling system
-    └── errors.go       # Typed errors, sentinel errors, and display functions
+├── config/               # Configuration management
+│   └── config.go        # Global configuration with Viper integration
+├── database/             # Database layer
+│   └── database.go      # Global database instance and FTS5 operations
+├── handlers/             # Business logic layer
+│   └── document.go      # Stateless document handlers using global instances
+├── models/              # Data structures
+│   └── document.go     # Document, SearchResult, and DocumentInfo models
+└── errors/             # Centralized error handling system
+    └── errors.go      # Typed errors, sentinel errors, and display functions
 ```
 
 ### Design Patterns
@@ -194,7 +195,9 @@ fts5-foundation
 **Layered Architecture**: Clear separation of concerns
 
 - Commands: CLI interface using CommandGroup pattern for hierarchical organization
-- Handlers: Business logic with database operations and FTS5 integration
+- Config: Global configuration management with factory functions
+- Database: Global database instance with initialization in PersistentPreRun
+- Handlers: Stateless business logic accessing global config and database instances
 - Models: Domain-specific data structures (Document, SearchResult, DocumentInfo)
 - Errors: Centralized error handling with type safety and user-friendly display
 
@@ -231,6 +234,7 @@ CREATE VIRTUAL TABLE documents USING fts5(
 
 - `--database, -d`: Database file path (default: ":memory:")
 - `--verbose, -v`: Show detailed error information
+- `--format, -f`: Output format (text, json) (default: "text")
 - `--config`: Configuration file path
 - `--help, -h`: Show help information
 

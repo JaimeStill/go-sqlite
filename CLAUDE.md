@@ -484,6 +484,15 @@ Maintain clear separation of concerns:
 - Ensure phase works as standalone CLI program
 - Document key learnings for context handoff to next phase
 
+### Guide Generation
+
+- Generate instructional GUIDE.md at phase completion using `_prompts/generate-guide.md`
+- Execute via: `Execute _prompts/generate-guide.md for src/##-[phase-name]/`
+- Include thorough description of all learning objectives with analogical illustrations
+- Explain core project infrastructure directly associated with learning objectives
+- Provide walkthroughs of command execution and outputs showing how commands function and relate to learning objectives
+- Focus on educational value and instructional clarity for future learners
+
 ### Phase Template Structure
 
 Each phase directory contains:
